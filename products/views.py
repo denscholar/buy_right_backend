@@ -10,8 +10,12 @@ from products.scrapper import scrape_websites
 
 websites = [
     {
+        "name": "oyato",
+        "categories": ["Electronics", "Household Appliances"],
+    },
+    {
         "name": "jumia",
-        "search_terms": ["Electronics"],
+        "categories": ["Electronics"],
     },
     # Add more website dictionaries here as needed
 ]
@@ -22,4 +26,11 @@ class CallScrappyAPIView(APIView):
             "message": scrapped_data,
         }
         return Response(data=response, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
 
