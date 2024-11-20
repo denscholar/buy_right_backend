@@ -264,9 +264,9 @@ def scrape_websites(websites_to_scrape):
     driver = start_driver()
     try:
         for website in websites_to_scrape:
-            if website["name"] == "oyato":
-                print("Scraping Oyato...")
-                scrape_oyato(driver, website["categories"])
+            # if website["name"] == "oyato":
+            #     print("Scraping Oyato...")
+            #     scrape_oyato(driver, website["categories"])
             if website["name"] == "jumia":
                 print("Scraping Jumia...")
                 scrape_jumia(driver, website["categories"])
