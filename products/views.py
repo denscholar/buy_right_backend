@@ -9,10 +9,10 @@ from products.scrapper import scrape_websites
 
 
 websites = [
-    {
-        "name": "oyato",
-        "categories": ["Electronics", "Household Appliances"],
-    },
+    # {
+    #     "name": "oyato",
+    #     "categories": ["Electronics"],
+    # },
     {
         "name": "jumia",
         "categories": ["Electronics"],
@@ -21,9 +21,9 @@ websites = [
 ]
 class CallScrappyAPIView(APIView):
     def get(self, request):
-        scrapped_data = scrape_websites(websites)
+        scrape_websites(websites)
         response = {
-            "message": scrapped_data,
+            "message": "scrappping successful",
         }
         return Response(data=response, status=status.HTTP_200_OK)
 

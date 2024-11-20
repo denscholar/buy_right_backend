@@ -1,5 +1,6 @@
 import selenium.webdriver as webdriver
 from webdriver_manager.chrome import ChromeDriverManager
+from django.db import transaction
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -16,6 +17,8 @@ from selenium.common.exceptions import (
 )
 from bs4 import BeautifulSoup
 import time
+
+from products.models import Category, Product
 
 
 # initialize the chrome driver
@@ -57,31 +60,50 @@ def scrape_jumia_pages(driver):
                     else None
                 )
 
-                # create the category
+                # Extract category dynamically (this depends on the website structure)
 
-                # categoryObj, created = Category.objects.get_or_create(
-                #     name=category,
-                #     defaults={
-                #         "name": category,
-                #     },
-                # )
+                category = (
+                    soup.find("h1", class_="-fs20 -m -elli -pvm").get_text(strip=True)
+                    if soup.find("h1", class_="-fs20 -m -elli -pvm")
+                    else "Uncategorized"
+                )
 
-                # obj, created = Product.objects.get_or_create(
-                #     product_url=product_url,
-                #     defaults={
-                #         "categoty": categoryObj,
-                #         "product_name": title,
-                #         "image_url": image_url,
-                #         "product_price": product_price,
-                #         "source": "Jumia",
-                #     },
-                # )
+                try:
+                    with transaction.atomic():
+                        # create the category
+                        categoryObj, created = Category.objects.get_or_create(
+                            name=category,
+                            defaults={
+                                "name": category,
+                            },
+                        )
 
-                print("source:", "Jumia")
-                print("product_name:", title)
-                print("image_url:", image_url)
-                print("product_url:", product_url)
-                print("product_price:", product_price)
+                        obj, created = Product.objects.get_or_create(
+                            product_url=product_url,
+                            defaults={
+                                "category": categoryObj,
+                                "product_name": title,
+                                "image_url": image_url,
+                                "product_price": product_price,
+                                "source": "Jumia",
+                            },
+                        )
+                        if created:
+                            print(
+                                f"Created new product: {title} under category: {category}"
+                            )
+                        else:
+                            print(f"Product already exists: {title}")
+
+                except Exception as e:
+                    print(f"Error while saving product: {e}")
+
+                # print("source:", "Jumia")
+                # print("category:", category)
+                # print("product_name:", title)
+                # print("image_url:", image_url)
+                # print("product_url:", product_url)
+                # print("product_price:", product_price)
 
         if not go_to_next_page_jumia(driver):
             break
@@ -143,31 +165,54 @@ def scrape_Oyato_pages(driver):
                     else None
                 )
 
-                # create the category
+                # Extract category dynamically (this depends on the website structure)
 
-                # categoryObj, created = Category.objects.get_or_create(
-                #     name=category,
-                #     defaults={
-                #         "name": category,
-                #     },
-                # )
+                category = (
+                    soup.find("h1", class_="title")
+                    .find("span")
+                    .get_text(strip=True)
+                    .title()
+                    if soup.find("h1", class_="title")
+                    else "Uncategorized"
+                )
 
-                # obj, created = Product.objects.get_or_create(
-                #     product_url=product_url,
-                #     defaults={
-                #         "categoty": categoryObj,
-                #         "product_name": title,
-                #         "image_url": image_url,
-                #         "product_price": product_price,
-                #         "source": "Jumia",
-                #     },
-                # )
+                try:
+                    with transaction.atomic():
+                        # create the category
+                        categoryObj, created = Category.objects.get_or_create(
+                            name=category,
+                            defaults={
+                                "name": category,
+                            },
+                        )
 
-                print("source:", "Oyata")
-                print("product_name:", title)
-                print("image_url:", image_url)
-                print("product_url:", product_url)
-                print("product_price:", product_price)
+                        # Create or get the product
+                        obj, created = Product.objects.get_or_create(
+                            product_url=product_url,
+                            defaults={
+                                "category": categoryObj,
+                                "product_name": title,
+                                "image_url": image_url,
+                                "product_price": product_price,
+                                "source": "Oyato",
+                            },
+                        )
+                        if created:
+                            print(
+                                f"Created new product: {title} under category: {category}"
+                            )
+                        else:
+                            print(f"Product already exists: {title}")
+
+                except Exception as e:
+                    print(f"Error while saving product: {e}")
+
+                # print("source:", "Oyata")
+                # print("product_name:", title)
+                # print("category:", category)
+                # print("image_url:", image_url)
+                # print("product_url:", product_url)
+                # print("product_price:", product_price)
 
         if not go_to_next_page_oyota(driver):
             break
@@ -188,7 +233,9 @@ def go_to_next_page_oyota(driver):
         # print(f"Outer HTML: {next_button.get_attribute('outerHTML')}")
 
         # Attempt to fix visibility issues
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", next_button)
+        driver.execute_script(
+            "arguments[0].scrollIntoView({block: 'center'});", next_button
+        )
         time.sleep(1)  # Smooth scroll
 
         if not next_button.is_displayed():
@@ -197,7 +244,7 @@ def go_to_next_page_oyota(driver):
                 "arguments[0].style.visibility = 'visible'; "
                 "arguments[0].style.display = 'block'; "
                 "arguments[0].style.opacity = '1';",
-                next_button
+                next_button,
             )
             time.sleep(1)
 

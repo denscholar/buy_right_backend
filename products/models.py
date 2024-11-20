@@ -25,7 +25,7 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    categoty = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
     product_name = models.CharField(max_length=250, blank=True, null=True)
     product_url = models.URLField(max_length=350, blank=True, null=True)
     source = models.CharField(max_length=100, blank=True, null=True) 
@@ -41,15 +41,6 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.product_name) + str(uuid.uuid4())
-
-        # if self.slug:
-        #     original = Product.objects.get(slug=self.slug)
-        #     if original.product_price != self.product_price:
-        #         # Record the price change in ProductPriceHistory
-        #         ProductPriceHistory.objects.create(
-        #             product=self,
-        #             price=original.product_price
-        #         )
 
         super().save(*args, **kwargs)
     
